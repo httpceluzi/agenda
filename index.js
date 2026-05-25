@@ -338,13 +338,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
   loadGoogleToken();
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    const webhookUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/webhook`;
-    await axios.post(`${TG}/setWebhook`, { url: webhookUrl });
-    console.log('Webhook configurado:', webhookUrl);
-  } else {
-    console.log('Modo polling activo');
-    setInterval(poll, 2000);
-  }
-  await sendMsg('🚀 *Bot actualizado con Google Calendar\\!*\n\nEscribí /conectarcalendar para vincular tu calendario\\.');
-});
+ await axios.post(`${TG}/deleteWebhook`).catch(() => {});
+  console.log('Modo polling activo');
+  setInterval(poll, 2000);
