@@ -338,6 +338,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
   loadGoogleToken();
- await axios.post(`${TG}/deleteWebhook`).catch(() => {});
+  await axios.post(`${TG}/deleteWebhook`).catch(() => {});
   console.log('Modo polling activo');
   setInterval(poll, 2000);
+  await sendMsg('🚀 *Bot actualizado con Google Calendar\\!*\n\nEscribí /conectarcalendar para vincular tu calendario\\.');
+});
