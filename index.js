@@ -89,6 +89,17 @@ async function sendMsg(text, chatId = CHAT_ID) {
   }
 }
 
+async function sendPlainMsg(text, chatId = CHAT_ID) {
+  try {
+    await axios.post(`${TG}/sendMessage`, {
+      chat_id: chatId,
+      text
+    });
+  } catch (e) {
+    console.error('Telegram error:', e.response?.data || e.message);
+  }
+}
+
 function today() {
   return new Date().toISOString().split('T')[0];
 }
@@ -110,7 +121,7 @@ async function handleCommand(msg) {
     const raw = text.replace('/nueva ', '').trim();
 
     let due = '';
-    const manana = raw.match(/\bmañana\b/i);
+    const manana = raw.match(/\bma\u00F1ana\b/i);
     const hoyMatch = raw.match(/\bhoy\b/i);
     const fechaMatch = raw.match(/(\d{4}-\d{2}-\d{2})/);
     if (manana) {
@@ -128,17 +139,16 @@ async function handleCommand(msg) {
 
     let proj = 'ia';
     if (/youtube|yt|canal/i.test(raw)) proj = 'yt';
-    await axios.post(`${TG}/sendMessage`, {
-      chat_id: chatId,
-      text: `📆 Conectar Google Calendar\n\nAbrí este link para autorizar:\n${authUrl}\n\nUna vez autorizado las tareas con fecha se agregarán automáticamente a tu calendario.`
-    });
-    .replace(/\bma\u00F1ana\b|\bhoy\b|\d{4}-\d{2}-\d{2}/gi, '')
+    else if (/celuzi|panaderia|pan|fermenta/i.test(raw)) proj = 'cel';
+    else if (/ebook|infoproducto|gumroad|hotmart|guia/i.test(raw)) proj = 'inf';
+
+    const title = raw
+      .replace(/\bma\u00F1ana\b|\bhoy\b|\d{4}-\d{2}-\d{2}/gi, '')
       .replace(/prioridad\s+(alta|media|baja|urgente)/gi, '')
       .trim();
 
     const newTask = { id: Date.now(), title, proj, prio, due, status: 'pendiente' };
 
-    // Agregar a Google Calendar si hay fecha
     if (due) {
       const link = await addToCalendar(newTask);
       if (link) newTask.calendarLink = link;
@@ -221,41 +231,40 @@ async function handleCommand(msg) {
   }
 
   if (text === '/conectarcalendar') {
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth` +
-      `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-      `&redirect_uri=${encodeURIComponent(`${BASE_URL}/auth/callback`)}` +
-      `&response_type=code` +
-      `&scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events')}` +
-      `&access_type=offline` +
-      `&prompt=consent`;
-    await sendMsg(
-      `📆 *Conectar Google Calendar*\n\nAbrí este link para autorizar:\n${authUrl}\n\n_Una vez autorizado las tareas con fecha se agregarán automáticamente a tu calendario._`,
+    const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
+      '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID) +
+      '&redirect_uri=' + encodeURIComponent(BASE_URL + '/auth/callback') +
+      '&response_type=code' +
+      '&scope=' + encodeURIComponent('https://www.googleapis.com/auth/calendar.events') +
+      '&access_type=offline' +
+      '&prompt=consent';
+    await sendPlainMsg(
+      '📆 Conectar Google Calendar\n\nAbri este link para autorizar:\n' + authUrl + '\n\nUna vez autorizado las tareas con fecha se agregaran automaticamente a tu calendario.',
       chatId
     );
     return;
   }
 
   if (text === '/start' || text === '/ayuda' || text === '/help') {
-    const calStatus = loadGoogleToken() ? '✅' : '❌ (usá /conectarcalendar)';
+    const calStatus = loadGoogleToken() ? '✅' : '❌ (usa /conectarcalendar)';
     await sendMsg(
-      `👋 *Hola Bárbara\\!* Soy tu gestor de proyectos\\.\n\n` +
+      `👋 *Hola Barbara!* Soy tu gestor de proyectos.\n\n` +
       `📆 Google Calendar: ${calStatus}\n\n` +
       `*Comandos:*\n\n` +
-      `/nueva _título_ — Crear tarea\n` +
-      `_Ej: /nueva Editar video YT mañana prioridad alta_\n\n` +
+      `/nueva titulo — Crear tarea\n` +
       `/hoy — Tareas que vencen hoy\n` +
-      `/semana — Próximos 7 días\n` +
+      `/semana — Proximos 7 dias\n` +
       `/lista — Todas las activas\n` +
-      `/listo _id_ — Marcar completada\n` +
-      `/resumen — Estadísticas\n` +
+      `/listo id — Marcar completada\n` +
+      `/resumen — Estadisticas\n` +
       `/conectarcalendar — Conectar Google Calendar\n` +
-      `/ayuda — Este menú`,
+      `/ayuda — Este menu`,
       chatId
     );
     return;
   }
 
-  await sendMsg('No entendí ese comando. Escribí /ayuda para ver los disponibles.', chatId);
+  await sendMsg('No entendi ese comando. Escribi /ayuda para ver los disponibles.', chatId);
 }
 
 // ── Auth callback de Google ───────────────────────────────────────────────────
@@ -264,10 +273,10 @@ app.get('/auth/callback', async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     saveGoogleToken(tokens);
-    await sendMsg('✅ *Google Calendar conectado correctamente\\!*\n\nAhora las tareas con fecha se agregarán automáticamente a tu calendario\\.');
-    res.send('<h2 style="font-family:sans-serif;text-align:center;margin-top:100px">✅ Google Calendar conectado. Podés cerrar esta pestaña.</h2>');
+    await sendMsg('✅ *Google Calendar conectado correctamente!*\n\nAhora las tareas con fecha se agregarán automáticamente a tu calendario.');
+    res.send('<h2 style="font-family:sans-serif;text-align:center;margin-top:100px">✅ Google Calendar conectado. Podes cerrar esta pestana.</h2>');
   } catch (e) {
-    res.send('<h2 style="font-family:sans-serif;text-align:center;margin-top:100px">❌ Error al conectar. Intentá de nuevo con /conectarcalendar</h2>');
+    res.send('<h2 style="font-family:sans-serif;text-align:center;margin-top:100px">❌ Error al conectar. Intenta de nuevo con /conectarcalendar</h2>');
   }
 });
 
@@ -294,7 +303,7 @@ cron.schedule('0 12 * * *', async () => {
   const tasks = loadTasks();
   const dueHoy = tasks.filter(t => t.due === today() && t.status !== 'listo');
   const activas = tasks.filter(t => t.status !== 'listo');
-  let msg = `☀️ *Buenos días\\! Resumen de hoy*\n\n📁 Activas: ${activas.length}\n`;
+  let msg = `☀️ *Buenos dias! Resumen de hoy*\n\n📁 Activas: ${activas.length}\n`;
   if (dueHoy.length > 0) {
     msg += `⚠️ Vencen HOY: ${dueHoy.length}\n\n${dueHoy.map(formatTask).join('\n')}`;
   } else {
@@ -343,5 +352,5 @@ app.listen(PORT, async () => {
   await axios.post(`${TG}/deleteWebhook`).catch(() => {});
   console.log('Modo polling activo');
   setInterval(poll, 2000);
-  await sendMsg('🚀 *Bot actualizado con Google Calendar\\!*\n\nEscribí /conectarcalendar para vincular tu calendario\\.');
+  await sendMsg('🚀 Bot reiniciado y listo!');
 });
