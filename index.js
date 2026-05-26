@@ -132,7 +132,7 @@ async function handleCommand(msg) {
       chat_id: chatId,
       text: `📆 Conectar Google Calendar\n\nAbrí este link para autorizar:\n${authUrl}\n\nUna vez autorizado las tareas con fecha se agregarán automáticamente a tu calendario.`
     });
-      .replace(/\bmañana\b|\bhoy\b|\d{4}-\d{2}-\d{2}/gi, '')
+    .replace(/\bma\u00F1ana\b|\bhoy\b|\d{4}-\d{2}-\d{2}/gi, '')
       .replace(/prioridad\s+(alta|media|baja|urgente)/gi, '')
       .trim();
 
