@@ -222,12 +222,13 @@ async function handleCommand(msg) {
 
   if (text === '/conectarcalendar') {
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth` +
-  `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-  `&redirect_uri=${encodeURIComponent(`${BASE_URL}/auth/callback`)}` +
-  `&response_type=code` +
-  `&scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events')}` +
-  `&access_type=offline` +
-  `&prompt=consent`;
+      `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
+      `&redirect_uri=${encodeURIComponent(`${BASE_URL}/auth/callback`)}` +
+      `&response_type=code` +
+      `&scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events')}` +
+      `&access_type=offline` +
+      `&prompt=consent`;
+    await sendMsg(
       `📆 *Conectar Google Calendar*\n\nAbrí este link para autorizar:\n${authUrl}\n\n_Una vez autorizado las tareas con fecha se agregarán automáticamente a tu calendario._`,
       chatId
     );
