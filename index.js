@@ -128,10 +128,10 @@ async function handleCommand(msg) {
 
     let proj = 'ia';
     if (/youtube|yt|canal/i.test(raw)) proj = 'yt';
-    else if (/celuzi|panadería|pan|fermenta/i.test(raw)) proj = 'cel';
-    else if (/ebook|infoproducto|gumroad|hotmart|guía/i.test(raw)) proj = 'inf';
-
-    const title = raw
+    await axios.post(`${TG}/sendMessage`, {
+      chat_id: chatId,
+      text: `📆 Conectar Google Calendar\n\nAbrí este link para autorizar:\n${authUrl}\n\nUna vez autorizado las tareas con fecha se agregarán automáticamente a tu calendario.`
+    });
       .replace(/\bmañana\b|\bhoy\b|\d{4}-\d{2}-\d{2}/gi, '')
       .replace(/prioridad\s+(alta|media|baja|urgente)/gi, '')
       .trim();
